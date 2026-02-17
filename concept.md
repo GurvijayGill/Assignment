@@ -1,58 +1,39 @@
 # Concept and Blueprint
 
-## Reasoning
+## Why This Design
 
-The core challenge is interface mismatch across three pricers:
+The three pricing libraries use different interfaces (function args, dict input, class method).  
+`PricerAdapter.price(trade, market_state)` provides one stable entry point and hides those differences.
 
-1. Swap pricer takes positional parameters.
-2. Swaption pricer takes a trade dictionary + market data.
-3. Cap/floor pricer is object-oriented and accepts optional kwargs.
-
-A single `price(trade, market_state)` API needs to hide these differences while remaining open for extension.
-
-A registry-based adapter is the cleanest fit because:
-
-- Routing is explicit and testable.
-- New trade types are added by registration, not by modifying an `if/elif` block.
-- Existing behavior remains stable as new handlers are introduced.
+A registry-based adapter is used to keep extension simple:
+- routing is explicit and testable
+- new trade types are added by registration
+- no edits are needed in `PricerAdapter.price`
 
 ## Blueprint
 
-### Components
+- Trade models: `IRSTrade`, `SwaptionTrade`, `CapFloorTrade`
+- Market container: `MarketState` (`curves`, `market_data`, `vol_surfaces`)
+- Core API: `PricerAdapter.price(trade, market_state) -> float`
+- Dispatch: registry + `@PricerAdapter.register(...)`
+- Error path: `UnsupportedTradeError` for unknown trade types
 
-1. **Trade models**
-   - `IRSTrade`
-   - `SwaptionTrade`
-   - `CapFloorTrade`
+Built-in handlers map directly to each library:
+- IRS -> `price_swap(...)`
+- Swaption -> `swaption_pv(...)`
+- Cap/Floor -> `CapFloorPricer.price(...)`
 
-2. **Market container**
-   - `MarketState` with `curves`, `market_data`, `vol_surfaces`
+## Flow
 
-3. **Adapter core**
-   - `PricerAdapter.price(trade, market_state) -> float`
-   - Handler registry (`trade type` -> `handler function`)
-   - `@PricerAdapter.register(...)` decorator for extension
+1. Call `adapter.price(trade, market_state)`.
+2. Resolve a handler from the trade type (MRO-aware).
+3. Pull required market inputs from `market_state`.
+4. Call the corresponding backend pricer.
+5. Return `float`.
 
-4. **Handlers (built-in)**
-   - IRS handler calls library 1 function
-   - Swaption handler calls library 2 function
-   - Cap/Floor handler calls library 3 object method
+## Extending New Trades
 
-5. **Error handling**
-   - `UnsupportedTradeError` for unknown trades
-
-### Data Flow
-
-1. Caller submits `trade` and `market_state`.
-2. Adapter resolves handler by trade class (supports inheritance via MRO lookup).
-3. Handler extracts required data from `market_state`.
-4. Handler calls the target pricing library using the expected signature.
-5. Result is returned as `float`.
-
-### Extending for New Trades
-
-1. Create new trade dataclass/class.
-2. Register handler:
+Register a new handler:
 
 ```python
 @PricerAdapter.register(NewTrade)
@@ -60,11 +41,9 @@ def _price_new_trade(adapter, trade, market_state):
     return some_pricer(...)
 ```
 
-3. No changes needed in `PricerAdapter.price`.
-
 ## Testing Strategy
 
-- Use fake pricers to verify routing and argument mapping.
-- Validate all required supported trade types.
-- Confirm unsupported trade raises `UnsupportedTradeError`.
-- Prove extensibility with an additional runtime registration test.
+- Verify routing for IRS, swaption, and cap/floor.
+- Verify argument forwarding to underlying pricers.
+- Verify unsupported trade raises `UnsupportedTradeError`.
+- Verify runtime registration works for a new trade type.
