@@ -52,7 +52,6 @@ Unsupported trades raise `UnsupportedTradeError`.
 - `concept.md`: Reasoning and design blueprint.
 - `requirements.txt`: Python test dependency list.
 - `Makefile`: `install` and `test` shortcuts.
-- `run_tests.ps1`: Windows-friendly test runner script.
 
 ## Setup
 
@@ -71,12 +70,6 @@ python -m pytest -q -p no:cacheprovider
 ```bash
 make install
 make test
-```
-
-```powershell
-.\run_tests.ps1 -Install
-# or
-.\run_tests.ps1
 ```
 
 ## Example Usage
