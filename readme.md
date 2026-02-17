@@ -91,9 +91,9 @@ trade = IRSTrade(
     fixed_rate=0.032,
     start=date(2026, 1, 1),
     end=date(2031, 1, 1),
-    curve_id="usd_ois",
+    curve_id="cad_ois",
 )
-market_state = MarketState(curves={"usd_ois": {"par_rate": 0.03}})
+market_state = MarketState(curves={"cad_ois": {"par_rate": 0.03}})
 
 pv = adapter.price(trade, market_state)
 print(pv)
