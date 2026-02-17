@@ -12,7 +12,7 @@ from datetime import date
 
 import pytest
 
-from pricer_adapter import (
+from price_adapter import (
     CapFloorTrade,
     IRSTrade,
     MarketState,

@@ -23,7 +23,7 @@ New trade support can be plugged in by registering a handler for a new trade cla
 
 ```python
 from dataclasses import dataclass
-from pricer_adapter import MarketState, PricerAdapter
+from price_adapter import MarketState, PricerAdapter
 
 
 @dataclass(frozen=True)
@@ -46,8 +46,9 @@ Unsupported trades raise `UnsupportedTradeError`.
 
 ## Files
 
-- `pricer_adapter.py`: Adapter, trade models, sample library signatures.
+- `price_adapter.py`: Adapter, trade models, sample library signatures.
 - `tests/test_pricer_adapter.py`: Pytest tests for routing, unsupported trades, and registry extensibility.
+- `demo_price.py`: Runnable demo for the adapter public interface.
 - `concept.md`: Reasoning and design blueprint.
 - `requirements.txt`: Python test dependency list.
 - `Makefile`: `install` and `test` shortcuts.
@@ -82,7 +83,7 @@ make test
 
 ```python
 from datetime import date
-from pricer_adapter import IRSTrade, MarketState, PricerAdapter
+from price_adapter import IRSTrade, MarketState, PricerAdapter
 
 adapter = PricerAdapter()
 trade = IRSTrade(
