@@ -42,9 +42,4 @@ python -m pytest -q tests/test_pricer_adapter.py
 python demo_price.py
 ```
 
-Or:
-
-```bash
-make install
-make test
 ```
